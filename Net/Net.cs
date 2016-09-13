@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
 using NetCore;
-using SimpleFramework;
+using LuaFramework;
 
 enum KickCode
 {
@@ -149,9 +149,9 @@ namespace NetCore
                     }
                     return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Debug.Log("_sendData wtf");
+                    Debug.Log("_sendData wtf Exception :" + ex.ToString());
                 }
             }
             return false;
@@ -202,9 +202,9 @@ namespace NetCore
                     UnityEngine.Debug.Log("SelectError Close Socket");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Debug.Log("_recvData wtf");
+                Debug.Log("_recvData wtf Exception :" + ex.ToString());
             }
         }
 

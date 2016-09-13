@@ -38,28 +38,14 @@ namespace NetCore
             writeVarint32Byte((UInt32)value);
         }
 
-        //Int64 readVarint64();
-        //void writeVarint64(Int64 value);
-
-        public string readVarintString()
+        public Int64 readVarint64()
         {
-            Int16 nStrLen = 0;
-
-            nStrLen = readVarint16();
-
-            byte[] b = m_pBuffer.readBytes(nStrLen);
-
-            string s = System.Text.Encoding.Default.GetString(b);
-
-            return s;
+            ulong val = 0;
+            return (Int64)readVarint64Byte(ref val, sizeof(Int64));
         }
-
-        public void writeVarintString(string s)
+        public void writeVarint64(Int64 value)
         {
-            short len = (short)s.Length;
-            writeVarint16(len);
-            byte[] val = System.Text.Encoding.Default.GetBytes(s);
-            m_pBuffer.writeBytes(val);
+            writeVarint64Byte((UInt64)value);
         }
 
         protected void writeVarint32Byte(UInt32 value)
@@ -125,7 +111,57 @@ namespace NetCore
             return (uint)result;
         }
 
-        //protected void writeVarint64Byte( uint64_t* p,int len);
-        //protected void readVarint64Byte( uint64_t* p,int len);
+        protected void writeVarint64Byte(UInt64 value)
+        {
+            while (value > 127)
+            {
+                writeInt8((byte) ((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+            while (value > 127)
+            {
+                writeInt8((byte)((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+            writeInt8((byte)value);
+        }
+
+        protected ulong readVarint64Byte(ref ulong value, int len)
+        {
+            int shift = 0;
+            ulong result = 0;
+            while (shift < 64)
+            {
+                byte b = m_pBuffer.readInt8();
+                result |= (ulong)(b & 0x7F) << shift;
+                if ((b & 0x80) == 0)
+                {
+                    return result;
+                }
+                shift += 7;
+            }
+            throw new InvalidCastException();
+        }
+
+        public string readVarintString()
+        {
+            Int16 nStrLen = 0;
+
+            nStrLen = readVarint16();
+
+            byte[] b = m_pBuffer.readBytes(nStrLen);
+
+            string s = System.Text.Encoding.Default.GetString(b);
+
+            return s;
+        }
+
+        public void writeVarintString(string s)
+        {
+            short len = (short)s.Length;
+            writeVarint16(len);
+            byte[] val = System.Text.Encoding.Default.GetBytes(s);
+            m_pBuffer.writeBytes(val);
+        }
     }
 }
